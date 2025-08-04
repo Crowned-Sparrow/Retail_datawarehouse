@@ -41,4 +41,4 @@ SELECT DISTINCT
 FROM 
 	bronze.retail
 WHERE unit_price = 0
-  --
+  -- Check description --> containing both product_name and description of product
