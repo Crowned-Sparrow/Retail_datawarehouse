@@ -4,22 +4,13 @@ BEGIN
 		PRINT'>> Truncating silver.retail';
 		TRUNCATE TABLE silver.retail;
 		PRINT'>> Inserting silver.retail';
-		INSERT INTO silver.retail (
-			invoice_no	,
-			stock_code	,
-			product_name,	
-			description	,
-			customer_id	,
-			quantity	,
-			unit_price	,
-			country		,
-			invoice_date	
-		)
-		SELECT 
-			invoice_no, -- C stand for cancelation
-			stock_code, -- Added on character of the end is product add on (ex: red table and blue table)
+WITH MAIN AS (
+	SELECT 
+		invoice_no, -- C stand for cancelation
+		stock_code, -- Added on character of the end is product add on (ex: red table and blue table)
 		CASE
-			WHEN CHARINDEX('?', description) > 0 THEN 'n/a'
+			WHEN CHARINDEX('?', description) > 0 
+				THEN 'n/a'
 			WHEN description COLLATE Latin1_General_BIN = UPPER(description)
 			AND description NOT LIKE '%ADJUST%'
 			AND description NOT LIKE '%STOCK%'
@@ -29,7 +20,11 @@ BEGIN
 			AND description NOT LIKE '%CHECK%'
 			AND description NOT LIKE '%DOTCOM%'
 			AND description NOT LIKE '%ONLINE ORDER%'
-			THEN TRIM(REPLACE(REPLACE(description, ';', ','), '"', ''))
+				THEN TRIM(REPLACE(REPLACE(description, ';', ','), '"', ''))
+			WHEN description COLLATE Latin1_General_BIN LIKE '%[0-9]%' 
+				THEN TRIM(REPLACE(REPLACE(description, ';', ','), '"', ''))
+			WHEN UPPER(description) COLLATE Latin1_General_BIN LIKE '%NO%'
+				THEN TRIM(REPLACE(REPLACE(description, ';', ','), '"', ''))
 		  ELSE 'n/a'
 		END AS product_name,
 		CASE
@@ -103,8 +98,48 @@ BEGIN
 			WHEN invoice_date > GETDATE() THEN 'NULL'
 			ELSE invoice_date
 		END AS invoice_date
-		FROM bronze.retail_cleaned;
-	END TRY
+		FROM bronze.retail_cleaned
+),
+marked_stock_to_product AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY stock_code
+               ORDER BY product_name DESC -- or something else meaningful // i do this bcs UPPERCASE LETTER always top n/a
+           ) AS rn
+    FROM MAIN
+),
+stock_to_product AS (
+    SELECT
+        stock_code,
+        product_name
+    FROM marked_stock_to_product
+    WHERE rn = 1
+)
+INSERT INTO silver.retail (
+			invoice_no	,
+			stock_code	,
+			product_name,	
+			description	,
+			customer_id	,
+			quantity	,
+			unit_price	,
+			country		,
+			invoice_date	
+		)
+SELECT
+    invoice_no,
+    MAIN.stock_code,
+    stock_to_product.product_name,
+    description,
+    customer_id,
+    quantity,
+    unit_price,
+    country,
+    invoice_date
+FROM MAIN
+LEFT JOIN stock_to_product
+    ON stock_to_product.stock_code = MAIN.stock_code
+END TRY
 
 	BEGIN CATCH
         PRINT '========================================';
