@@ -1,3 +1,6 @@
+IF OBJECT_ID('silver.retail','U') IS NOT NULL
+    DROP TABLE silver.retail;
+GO
 CREATE TABLE silver.retail (
 	invoice_no	VARCHAR(50),
 	stock_code	VARCHAR(50),
