@@ -1,4 +1,3 @@
--- (1) Đảm bảo bảng phù hợp với dữ liệu
 IF OBJECT_ID('bronze.retail','U') IS NOT NULL
     DROP TABLE bronze.retail;
 GO
