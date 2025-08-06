@@ -2,7 +2,7 @@ import pandas as pd
 from collections import Counter
 
 # Load and clean data
-df = pd.read_csv("product_data.csv")
+df = pd.read_csv("product_data.csv") # file export from sql with product_key , product_id (stock_code), description
 df = df[df['product_name'].notna()]
 df = df[df['product_name'].str.lower() != 'n/a'].copy()
 
