@@ -51,6 +51,7 @@ df[['product_base_name', 'variant_name']] = df.apply(split_base_and_variant, axi
 # Show final result
 df_final = df[[
     'product_key',
+    'product_id',
     'product_group_id',
     'variant_id',
     'product_base_name',
