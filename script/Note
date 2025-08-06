@@ -1,3 +1,3 @@
---There or "," in the original file so the first step should be replacing those with ";" (or any other coma but remember it for further
+--There are "," in the original file so the first step should be replacing those with ";" (or any other coma but remember it for further
 data manupilating
 --There are multiple invisible characters in dataset, especially in description
