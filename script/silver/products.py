@@ -9,7 +9,7 @@ df = df[df['product_name'].str.lower() != 'n/a'].copy()
 # Extract product_group_id
 df['product_group_id'] = df['product_id'].astype(str).str[:5]
 df['variant_id'] = df['product_id'].astype(str).str[5:]
-# Step 1: Get common words per group
+# Get common words per group
 def get_common_words(names):
     all_words = [word for name in names for word in name.upper().split()]
     word_counts = Counter(all_words)
@@ -22,12 +22,12 @@ common_words_dict = (
       .to_dict()
 )
 
-# Step 2: Extract base_name and variant using common words
+# Extract base_name and variant using common words
 def split_base_and_variant(row):
     name_words = str(row['product_name']).upper().split()
     common_words = common_words_dict.get(row['product_group_id'], [])
 
-    # Case: No variant_id → treat full name as base
+    # Case: No variant_id --> treat full name as base, if 1 varient --> varient_name
     if str(row['variant_id']).strip() == '':
         return pd.Series([
             ' '.join(name_words).title(),  # full product name as base
@@ -45,10 +45,8 @@ def split_base_and_variant(row):
 
 df[['product_base_name', 'variant_name']] = df.apply(split_base_and_variant, axis=1)
 
-# Optional: Drop unused rows (no base name or no variant)
-# df = df[df['product_base_name'].str.strip() != '']
 
-# Show final result
+# Check final result
 df_final = df[[
     'product_key',
     'product_id',
