@@ -1,0 +1,1 @@
+-The project consist of 2 part: establsihing a data warehouse, giving basic analysis ( no model since the data is not available for it)
